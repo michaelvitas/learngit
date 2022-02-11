@@ -105,3 +105,18 @@ e、检查 ssh 服务状态
 	sudo apt install net-tools
 使用 ifconfig 命令
 	ifconfig
+
+创建用户
+sudo adduser <用户名>
+赋予 root 权限
+sudo vim /etc/sudoers
+修改如下
+root ALL=(ALL) ALL
+newuser ALL=(ALL) ALL
+切换用户
+su <用户名>
+普通用户切换到 root 用户
+sudo su
+修改用户密码
+sudo passwd root
+sudo passwd username
