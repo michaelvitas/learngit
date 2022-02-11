@@ -1,0 +1,191 @@
+工作区（working tree/directory）：电脑上能看到的目录
+本地仓库/版本库（repository）：工作区中的隐藏目录 .git，这个不算工作区，而是 Git 的版本库
+	暂存区（index/stage）
+	分支，如 Git 自动创建的第一个分支 master
+	指针，指向分支的一个指针 HEAD
+流程：
+工作区 --git add--> 暂存区 --git commit--> 分支
+
+	git diff <file>：查看 working tree 与 index 的差别
+	git diff --cached <file>：查看 index 与 repository 的差别
+	git diff HEAD <file>：查看 working tree 和 repository 的差别，HEAD 代表最近的一次 commit
+
+配置 Git
+	加上 --global 是针对当前用户起作用，如果不加，则只针对当前仓库
+	git config --global user.email "charles@gmail.com"
+	git config --global user.name "charles"
+	配置颜色
+		git config --global color.ui true
+	配置别名
+		git status => git st
+			git config --global alias.st status
+		git config --global alias.co checkout
+		git config --global alias.ci commit
+		git config --global alias.br branch
+		git log -1 显示最后一次提交信息
+		git log -1 => git last
+		git config --global alias.last 'log -1'
+	Git 配置文件存放位置
+	1、每个仓库的配置文件放在 .git/config 文件中
+	2、当前用户的 Git 配置文件放在用户主目录下的一个隐藏文件 .gitconfig 中
+	比如当前用户是 charles，主目录 /Users/charles，Git 配置文件 /Users/charles/.gitconfig
+
+使用 git init 命令初始化一个 Git 仓库
+
+列出目录所有文件，包括显示隐藏文件
+	ls -ah
+
+将文件放入 Git 仓库和提交修改一样，只需两步
+工作区文件修改后，若未添加到暂存区，使用 git restore <file> 丢弃工作区的修改
+1、使用 git add <file>	将文件修改添加到暂存区
+	使用 git rm -cached <file> 对新增文件取消暂存
+	使用 git restore --staged <file> 对修改取消暂存
+	使用 git restore <file> 丢弃工作目录中的修改
+2、使用 git commit -m "remark"	将暂存区的所有内容提交到仓库（当前分支）
+
+备注：
+可以多次 add 不同的文件，然后一次 commit
+Git 命令必须在 Git 仓库目录内执行（git init除外）
+
+使用 git status 命令查询当前仓库的状态
+
+使用 git diff <file> 命令查看文件的具体改动
+	diff --git a/readme.txt b/readme.txt				对比两个文件，a 代表改动前，b 代表改动后
+	index ec548e1..a5fc558 100644						两个版本的 Git 哈希值，暂存区 ec548e1，工作区 a5fc558，100644 其中 100 表示普通文件，644 表示权限控制
+	--- a/readme.txt									-- 表示变动前
+	+++ b/readme.txt									++ 表示变动后
+	@@ -1,3 +1,3 @@										+- 表示变动前后，-1,3 逗号前是起始行位置，逗号后是从起始行往后几行
+	-Git is a version control system.					- 表示删除这一行
+	+Git is a distributed version control system.		+ 表示增加这一行
+	 Git is free software.								没有符号表示此行没有变动
+
+
+使用 git log 命令查看提交历史，以便确定要回退到哪个版本
+git log --pretty=oneline
+	Git 中用 HEAD 表示当前版本，HEAD 是指向当前版本的指针
+	e1395bfade20d6c04dca5557e3cc145f3ad26cdc (HEAD -> master) append GPL
+	610fc878758b2db634a19ebeced256a23fcb4a28 add distributed
+	8b3f97f843ac8a6d49d0851f140ca4b974fc4bad wrote a readme file
+
+
+使用 git reflog 查看命令历史，以便确定要回到未来的哪个版本
+
+
+Git 中用 HEAD 表示当前版本，HEAD^ 表示上一个版本，HEAD^^ 表示上上个版本，HEAD~100 表示前 100 个版本
+使用 git reset 命令来回退版本：
+git reset --hard HEAD^
+git reset --hard HEAD^^
+git reset --hard HEAD~100
+使用如下命令定位到指定（可能是回退也可能是前进）的版本
+git reset --hard commit id（一般是 commit id 的前 7 位）
+
+
+Git 中的 commit id（版本号）是一个 SHA1 计算出来的用十六进制表示的数字，如 e1395bfade20d6c04dca5557e3cc145f3ad26cdc
+采用这种方式的是因为 Git 是分布式的版本控制系统，避免多人在同一个版本库里工作时产生冲突
+
+
+撤销修改
+1、工作区文件修改后未添加到暂存区
+	使用命令 git restore <file> 丢弃工作区的修改
+2、工作区文件修改后添加到了暂存区
+	先使用命令 git restore --staged <file> 取消暂存，然后使用 git restore <file> 丢弃工作区的修改
+3、工作区文件修改后提交到了分支
+	使用 git reset --hard 命令回退版本
+
+
+删除文件
+a、提交新文件到分支
+	touch test.txt
+	git add test.txt
+	git commit -m 'add test.txt'
+b、删除文件
+	rm test.txt
+c、查看状态
+	git status
+	charles@charlesdeMBP learngit % git status
+	On branch master
+	Changes not staged for commit:
+  		(use "git add/rm <file>..." to update what will be committed)
+  		(use "git restore <file>..." to discard changes in working directory)
+		deleted:    test.txt
+两种情况
+1、从版本库中删除该文件
+	git rm test.txt
+	git commit -m 'remove test.txt'
+2、恢复被误删的文件
+	git restore test.txt
+
+
+
+工作区 Working Directory
+	电脑上看得到的目录
+	忽略特殊文件
+		.gitignore
+版本库 Repository
+	工作区中的隐藏目录 .git
+		暂存区 stage（或者叫 index）
+
+分支
+查看分支
+git branch
+
+创建并切换分支
+git switch -c dev
+相当于
+a、创建 dev 分支
+git branch dev
+b、切换到 dev 分支
+git switch dev
+
+合并分支
+git merge 命令用于合并指定分支到当前分支
+如当前分支为 master
+git merge dev
+即将 dev 分支合并到 master 分支
+
+删除分支
+git branch -d <分支名称>
+如删除 dev 分支
+git branch -d dev
+若要丢弃一个没有被合并过的分支，使用大写的 -D 参数强行删除
+git branch -D feature
+
+将本地分支的所有提交推送到远程库
+命令：git push 远程库 本地分支
+eg: git push origin master
+
+从远程库 clone 时，默认只能看到本地的 master 分支
+若要创建远程库的其它分支到本地
+命令：git switch -c 本地分支 远程库/远程分支
+eg: git switch -c dev origin/dev
+
+git pull 拉取远程更新时，若提示 no tracking information，说明本地分支和远程分支没有创建链接
+命令：git branch --set-upstream-to 本地分支 远程库/远程分支
+eg: git branch --set-upstream-to dev origin/dev
+
+查看远程库
+git remote -v
+删除远程库，实质是解除本地和远程的绑定关系
+git remote rm <name>
+
+
+创建标签
+git tag v1.0 <commit>
+git tag -a v1.1 -m 'description' <commit>
+显示所有标签
+git tag
+显示标签详情
+git show v1.0
+根据标签详情查找 commit
+将某个标签推到远程库
+git push origin v1.0
+将所有标签推到远程库
+git push origin --tags
+删除本地标签
+git tag -d v1.0
+删除远程库中的标签
+1、先从本地删除
+git tag -d v1.0
+2、再从远程删除
+git push origin :refs/tags/v1.0
+备注：本地标签存储在 .git/refs/tags 目录中

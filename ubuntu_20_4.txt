@@ -1,0 +1,107 @@
+Ubuntu
+设置基于 SSH 密钥的身份验证并连接到 Ubuntu 计算机，而无需输入密码
+密码：mj@5201314
+参考：
+	https://linuxize.com/post/how-to-setup-passwordless-ssh-login/	（英文）
+	https://www.myfreax.com/how-to-set-up-ssh-keys-on-ubuntu-20-04/	（中文）
+步骤：
+1、检查客户端计算机是否存在密钥文件：ls -al ~/.ssh/id_*.pub
+charles@charlesdeMBP ~ % ls -al ~/.ssh/id_*.pub
+zsh: no matches found: /Users/charles/.ssh/id_*.pub
+
+2、使用电子邮件地址作为注释来生成一个新的 4096 位 SSH 密钥对：ssh-keygen -t rsa -b 4096 -C "charles@gmail.com"
+charles@charlesdeMBP ~ % ssh-keygen -t rsa -b 4096 -C "charles@gmail.com"
+Generating public/private rsa key pair.
+Enter file in which to save the key (/Users/charles/.ssh/id_rsa): 
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /Users/charles/.ssh/id_rsa.
+Your public key has been saved in /Users/charles/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:SprSLljzdohxnRxGaKkfVUYQXpy7FFuG4bv/tTuWWi0 charles@gmail.com
+The key's randomart image is:
++---[RSA 4096]----+
+|     oo**+       |
+|    +.o+= o      |
+|   o o. .*       |
+|  . . o +.       |
+|   . =.+S.       |
+|  +.o++...     . |
+| o.*+.. .     E..|
+|. oo+ .  .   o+o |
+|   o..    ..oooo |
++----[SHA256]-----+
+
+3、验证客户端计算机是否生成了新的密钥对：ls -al ~/.ssh/id_*.pub
+charles@charlesdeMBP ~ % ls ~/.ssh/id_*
+/Users/charles/.ssh/id_rsa	/Users/charles/.ssh/id_rsa.pub
+
+4、使用 ssh-copy-id 工具将公钥复制到远程服务器：ssh-copy-id charles@192.168.50.144
+公钥复制到服务器端用户的 .ssh/authorized_keys 文件中，就可以通过证书实现无密码连接
+charles@charlesdeMBP ~ % ssh-copy-id charles@192.168.50.144
+/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/Users/charles/.ssh/id_rsa.pub"
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+charles@192.168.50.144's password: 
+
+Number of key(s) added:        1
+
+Now try logging into the machine, with:   "ssh 'charles@192.168.50.144'"
+and check to make sure that only the key(s) you wanted were added.
+
+使用 FinalShell 时需要转换私钥格式
+执行命令：ssh-keygen -p -m PEM -f /Users/charles/.ssh/id_rsa
+
+
+ssh 远程 Ubuntu 虚拟机
+命令 ssh [-p 22] charles@192.168.50.144
+若 ssh 端口采用默认 22 则可以省略 -p 
+
+ssh-server 配置文件路径：/etc/ssh/sshd_config
+在配置文件中可以定义 ssh 的服务端口，重新定义端口后需要重启 ssh 服务
+
+1、网络连接方式应该选择桥接
+	网络
+		连接方法：桥接网卡
+
+2、Ubuntu 虚拟机开启 ssh 服务
+确保 ssh 服务正在运行
+2.1 使用 apt 安装 ssh 服务器端 openssh-server
+安装命令 
+	sudo apt-get install openssh-server
+重启 ssh 服务
+	sudo /etc/init.d/ssh restart
+验证安装是否成功并且 ssh 服务是否正常运行
+	sudo systemctl status ssh
+查看 22 端口是否处于 LISTEN 状态
+	netstat -an |grep 22
+查看 ssh 服务是否在运行
+	ps -e |grep ssh
+	net -tlp
+
+3、Ubuntu 附带了一个名为 UFW 的防火墙配置工具
+若系统启用了防火墙，需确保打开 ssh 端口
+	sudo ufw allow ssh
+
+常用命令
+a、停止 ssh 服务
+	sudo systemctl stop ssh
+b、启动 ssh 服务
+	sudo systemctl start ssh
+	/etc/init.d/ssh start
+c、禁用 ssh 服务
+	sudo systemctl disable ssh
+d、再次启用
+	sudo systemctl enable ssh
+e、检查 ssh 服务状态
+	sudo systemctl status ssh
+
+查看 ip 地址
+方式一：
+使用 ip 命令
+	ip a
+方式二：
+安装 net-tools
+	sudo apt install net-tools
+使用 ifconfig 命令
+	ifconfig

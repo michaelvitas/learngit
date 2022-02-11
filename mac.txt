@@ -1,0 +1,15 @@
+Mac 显示隐藏文件
+快捷键 command + shift + .
+
+命令行
+ls 命令后面需要加上参数 -ah
+ls -ah
+charles@charlesdeMBP learn_git % ls -ah
+.	..	.git	.idea
+
+
+
+ls 命令
+ls 是 list files（列出文件） 的缩写
+参数
+-a（all）显示所有文件和目录，包括以 . 开头的隐藏文件
